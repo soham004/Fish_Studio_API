@@ -50,6 +50,10 @@ response = requests.get(fish_self_api, headers=headers)
 if response.status_code == 200:
     data = response.json()
     # print(data)
+    if data["banned"]:
+        print("Your account is banned.")
+        print(f"Banned reason: {data['banned_reason']}")
+        exit(1)
     USER_ID = data['_id']
     print(f"User ID: {USER_ID}")
     print(f"Username: {data['nickname']}")
@@ -62,11 +66,14 @@ else:
     password = config['Password']
     BEARER_TOKEN = fetch_bearer_using_selenium(email, password)
     config["BearerToken"] = BEARER_TOKEN
+    headers['Authorization'] = f'Bearer {BEARER_TOKEN}'
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
 
+
 # fish_api.BEARER_TOKEN = BEARER_TOKEN
 if __name__ == "__main__":
+
     fish_api.set_bearer_token(BEARER_TOKEN)
 
     logging.info(f"Bearer token set to: '{BEARER_TOKEN}'")
@@ -76,8 +83,8 @@ if __name__ == "__main__":
 
     logging.info(f"Current Credit Balance: {current_credit_balance}")
 
-    if current_credit_balance < 0:
-        print("Insufficient credits")
+    if current_credit_balance < 5000:
+        print("Low credits")
 
     voice_id = fish_api.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
@@ -125,6 +132,9 @@ if __name__ == "__main__":
             print(f"Download link: {download_link}")
             logging.info(f"Download link: {download_link}")
             download_links.append(download_link)
+
+        print(f"All chapters exported successfully. Downloading audio files for project {folder_name}...")
+        logging.info(f"All chapters exported successfully. Downloading audio files...")
 
         for download_link in download_links:
             print(f"Downloading from link: {download_link}")
