@@ -21,6 +21,24 @@ base_headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
 }
 
+def retry(n):
+    """
+    A decorator that retries a function up to n times if it raises an exception.
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, n + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    print(f"Attempt {attempt} failed with error: {e}")
+                    if attempt == n:
+                        print("All retry attempts failed.")
+                        raise
+        return wrapper
+    return decorator
+
+
 def set_bearer_token(token):
     global BEARER_TOKEN
     global base_headers
@@ -44,6 +62,7 @@ def set_bearer_token(token):
     }
     print(f"Bearer token set to: '{BEARER_TOKEN}'")
 
+@retry(3)
 def get_current_credit_balance(user_id:str)-> int:
     wallet_api_url = f"https://api.fish.audio/wallet/{user_id}/package"
     headers = base_headers.copy()
@@ -52,9 +71,9 @@ def get_current_credit_balance(user_id:str)-> int:
         data = response.json()
         return data['balance']
     else:
-        print(f"Error fetching credit balance: {response.status_code}")
-        return None
+        raise Exception(f"Error fetching credit balance: {response.status_code}")
 
+@retry(3)
 def get_voice_id(voice_name:str)-> str:
     voice_api_url = f"https://api.fish.audio/model/latest-used?page_size=10&page_number=1"
     headers = base_headers.copy()
@@ -66,9 +85,9 @@ def get_voice_id(voice_name:str)-> str:
             if voice['title'] == voice_name:
                 return voice['_id']
     else:
-        print(f"Error fetching voice ID: {response.status_code}")
-        return None
+        raise Exception(f"Error fetching voice ID: {response.status_code}")
     
+@retry(3)
 def create_studio_project(default_voice_id:str, default_backend:str, name:str)-> str:
     create_studio_project_api = "https://api.fish.audio/studio"
     headers = base_headers.copy()
@@ -82,9 +101,10 @@ def create_studio_project(default_voice_id:str, default_backend:str, name:str)->
         data = response.json()
         return data['_id']
     else:
-        print(f"Error creating chapter: {response.status_code}")
-        return None
+        raise Exception(f"Error creating chapter: {response.status_code}")
+        # return None
 
+@retry(3)
 def create_chapter(project_id:str, title:str)-> str:
     create_chapter_api = f"https://api.fish.audio/studio/{project_id}/chapters"
     headers = base_headers.copy()
@@ -96,5 +116,5 @@ def create_chapter(project_id:str, title:str)-> str:
         data = response.json()
         return data['_id']
     else:
-        print(f"Error creating chapter: {response.status_code}")
-        return None
+        raise Exception(f"Error creating chapter: {response.status_code}")
+        # return None

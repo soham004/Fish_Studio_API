@@ -4,7 +4,6 @@ from selenium_stealth import stealth
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import *
 import time
 import json
@@ -100,14 +99,13 @@ def fetch_bearer_using_selenium(email:str, password:str) -> str:
 
     loginToFish(driver, email, password)
 
-    
-
     # Wait a few seconds to ensure all requests are done
     time.sleep(5)
 
     logs = driver.get_log('performance')
 
     token = get_token_from_browser_logs(logs)
+    
     if token:
         print("Bearer token fetched successfully.")
         driver.quit()
