@@ -100,9 +100,10 @@ if __name__ == "__main__":
 
         logging.info(f"Current Credit Balance: {current_credit_balance}")
 
-        if current_credit_balance < 5000:
-            print("Low credits")
-            logging.info("Low credits")
+        if current_credit_balance < 10000:
+            print(f"Low credits: {current_credit_balance} credits left.")
+            logging.info(f"Low credits: {current_credit_balance} credits left.")
+            # logging.info("Low credits")
             input("Press Enter to continue or press (Ctrl+c) to stop...")
         
         folder_path = os.path.join(input_projects_path, folder_name)
