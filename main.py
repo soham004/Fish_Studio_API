@@ -4,7 +4,7 @@ import requests
 
 from modules.bearer_fetch import fetch_bearer_using_selenium
 from modules import fish_api
-from modules.text_splicer import split_text_by_period
+from modules.utils.text_splicer import split_text_by_period
 
 import logging
 

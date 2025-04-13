@@ -1,5 +1,5 @@
 import time
-from modules.cleanup import textCleanUp
+from modules.utils.cleanup import textCleanUp
 
 def split_text_by_period(filename: str, limit: int) -> list:
     with open(filename, 'r', encoding='utf-8') as file:
