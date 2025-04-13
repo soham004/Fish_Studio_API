@@ -80,20 +80,12 @@ else:
         json.dump(config, f, indent=4)
     
     print("Bearer token updated in config.json.")
-    print("Please run the script again.")
+    input("Please run the script again.")
     exit(1)
 
 
 if __name__ == "__main__":
-
-    current_credit_balance = int(fish_api.get_current_credit_balance(USER_ID))
-    print(f"Current Credit Balance: {current_credit_balance}")
-
-    logging.info(f"Current Credit Balance: {current_credit_balance}")
-
-    if current_credit_balance < 5000:
-        print("Low credits")
-
+    
     voice_id = fish_api.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
@@ -103,6 +95,16 @@ if __name__ == "__main__":
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
 
     for folder_name in folders:
+        current_credit_balance = int(fish_api.get_current_credit_balance(USER_ID))
+        print(f"Current Credit Balance: {current_credit_balance}")
+
+        logging.info(f"Current Credit Balance: {current_credit_balance}")
+
+        if current_credit_balance < 5000:
+            print("Low credits")
+            logging.info("Low credits")
+            input("Press Enter to continue or press (Ctrl+c) to stop...")
+        
         folder_path = os.path.join(input_projects_path, folder_name)
         print(f"Processing folder: {folder_name}")
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
