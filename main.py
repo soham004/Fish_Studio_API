@@ -58,6 +58,7 @@ if response.status_code == 200:
     print(f"User ID: {USER_ID}")
     print(f"Username: {data['nickname']}")
     print(f"Email: {data['email']}")
+    fish_api.set_bearer_token(BEARER_TOKEN)
 else:
     print(f"Error: {response.status_code}")
     print(response.text)
@@ -66,17 +67,24 @@ else:
     password = config['Password']
     BEARER_TOKEN = fetch_bearer_using_selenium(email, password)
     config["BearerToken"] = BEARER_TOKEN
+    logging.info(f"Bearer token fetched using Selenium: {BEARER_TOKEN}")
+    
+    # Update the token in the fish_api module
+    fish_api.set_bearer_token(BEARER_TOKEN)
+    
+    # Update the headers in the current script
     headers['Authorization'] = f'Bearer {BEARER_TOKEN}'
+    
+    # Save the updated token to the config file
     with open("config.json", "w") as f:
         json.dump(config, f, indent=4)
+    
+    print("Bearer token updated in config.json.")
+    print("Please run the script again.")
+    exit(1)
 
 
-# fish_api.BEARER_TOKEN = BEARER_TOKEN
 if __name__ == "__main__":
-
-    fish_api.set_bearer_token(BEARER_TOKEN)
-
-    logging.info(f"Bearer token set to: '{BEARER_TOKEN}'")
 
     current_credit_balance = int(fish_api.get_current_credit_balance(USER_ID))
     print(f"Current Credit Balance: {current_credit_balance}")

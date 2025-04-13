@@ -1,6 +1,9 @@
 import requests
 import json
 import sseclient
+import logging
+
+logging.basicConfig(filename="runtime.log",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 BEARER_TOKEN = None
 
@@ -33,6 +36,8 @@ def retry(n):
                     return func(*args, **kwargs)
                 except Exception as e:
                     print(f"Attempt {attempt} failed with error: {e}")
+                    logging.error(f"Attempt {attempt} failed with error: {e}")
+                    logging.info(f"Header: {base_headers}")
                     if attempt == n:
                         print("All retry attempts failed.")
                         raise
@@ -62,6 +67,7 @@ def set_bearer_token(token):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
     }
     print(f"Bearer token set to: '{BEARER_TOKEN}'")
+    logging.info(f"Bearer token set to: '{BEARER_TOKEN}'")
 
 @retry(3)
 def get_current_credit_balance(user_id:str)-> int:
