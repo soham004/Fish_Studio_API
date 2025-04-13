@@ -118,6 +118,7 @@ if __name__ == "__main__":
             # Create one chapter for each file
             file_path = os.path.join(folder_path, file_name)
             print(f"Processing file: {file_name}")
+            print()
             logging.info(f"Processing file: {file_name}")
             chapter_id = fish_api.create_chapter(studio_project_id, file_name[:20])
             logging.info(f"Chapter ID: {chapter_id} with name: {file_name[:20]}")
