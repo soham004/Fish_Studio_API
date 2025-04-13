@@ -1,5 +1,6 @@
 import requests
 import json
+import sseclient
 
 BEARER_TOKEN = None
 
@@ -70,6 +71,9 @@ def get_current_credit_balance(user_id:str)-> int:
     if response.status_code < 300:
         data = response.json()
         return data['balance']
+    elif response.status_code == 401:
+        print(f"Error: Unauthorized. Please check your bearer token.")
+        exit()
     else:
         raise Exception(f"Error fetching credit balance: {response.status_code}")
 
@@ -84,6 +88,9 @@ def get_voice_id(voice_name:str)-> str:
             # print(voice)
             if voice['title'] == voice_name:
                 return voice['_id']
+    elif response.status_code == 401:
+        print(f"Error: Unauthorized. Please check your bearer token.")
+        exit()
     else:
         raise Exception(f"Error fetching voice ID: {response.status_code}")
     
@@ -100,6 +107,9 @@ def create_studio_project(default_voice_id:str, default_backend:str, name:str)->
     if response.status_code < 300:
         data = response.json()
         return data['_id']
+    elif response.status_code == 401:
+        print(f"Error: Unauthorized. Please check your bearer token.")
+        exit()
     else:
         raise Exception(f"Error creating chapter: {response.status_code}")
         # return None
@@ -115,6 +125,83 @@ def create_chapter(project_id:str, title:str)-> str:
     if response.status_code < 300:
         data = response.json()
         return data['_id']
+    elif response.status_code == 401:
+        print(f"Error: Unauthorized. Please check your bearer token.")
+        exit()
     else:
         raise Exception(f"Error creating chapter: {response.status_code}")
         # return None
+
+@retry(3)
+def insert_text_block(content:str, studio_id:str, chapter_id:str, voice_id:str) -> str:
+    insert_text_block_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}/blocks"
+    headers = base_headers.copy()
+    data = {
+        "content": content,
+        "voice_id": voice_id,
+    }
+    response = requests.post(insert_text_block_api, headers=headers, json=data)
+    if response.status_code < 300:
+        # data = response.json()
+        # return data['_id']
+        pass
+    elif response.status_code == 401:
+        print(f"Error: Unauthorized. Please check your bearer token.")
+        exit()
+    else:
+        raise Exception(f"Error inserting text block: {response.status_code}")
+        # return None
+
+@retry(3)
+def get_chapter_blocks(studio_id:str, chapter_id:str):
+    get_chapter_blocks_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}/blocks"
+    headers = base_headers.copy()
+    response = requests.get(get_chapter_blocks_api, headers=headers)
+    if response.status_code < 300:
+        data = response.json()
+        return data
+    elif response.status_code == 401:
+        print(f"Error: Unauthorized. Please check your bearer token.")
+        exit()
+    else:
+        raise Exception(f"Error fetching chapter blocks: {response.status_code}")
+
+def export_chapter(studio_id:str, chapter_id:str):
+    export_chapter_api = f"https://api.fish.audio/studio/{studio_id}/export"
+    headers = base_headers.copy()
+    headers['Accept'] = 'text/event-stream'
+    data = {
+        "audio_format":"mp3",
+        "chapter_ids":[chapter_id],
+        "export_subtitles": False,
+        "pad_between_segments":0.2,
+        "project_id":studio_id 
+    }
+    with requests.post(export_chapter_api, headers=headers, stream=True, json=data) as response:
+        client = sseclient.SSEClient(response)
+        i = 1
+        f = 1
+        j = 1
+        for event in client.events():
+            try:
+                data = json.loads(event.data)
+                event_type = data.get("type")
+                # print("Received event:", data)
+                if event_type == "generate-audio":
+                    print(f"\rGenerating audio... {i}", end="\r")
+                    i += 1
+                if event_type == "generate-audio-finished":
+                    print(f"\rFinished generating block: {f}", end="\r")
+                    f += 1
+                if event_type == "progress-fetch-audio":
+                    print(f"\rFetching audio... {j}", end="\r")
+                    j += 1
+                if event_type == "message":
+                    if data.get("message") == "concatenating-progress":
+                        print(f"\rConcatenation progress: {data.get('progress')}%", end="\r")
+                if event_type == "complete":
+                    return data.get("url")
+            except json.JSONDecodeError:
+                print("Received non-JSON event:", event.data)
+        
+        print("\nExport process completed.")

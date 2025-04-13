@@ -4,6 +4,11 @@ import requests
 
 from modules.bearer_fetch import fetch_bearer_using_selenium
 from modules import fish_api
+from modules.text_splicer import split_text_by_period
+
+import logging
+
+logging.basicConfig(filename="runtime.log",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 if os.path.exists("config.json"):
     with open("config.json", "r") as f:
@@ -15,6 +20,9 @@ else:
 BEARER_TOKEN = config.get("BearerToken")
 USER_ID = None
 VOICE_NAME = config.get("Voice_Name")
+INPUT_FOLDER = 'inputFiles'
+DOWNLOAD_FOLDER = 'outputFiles'
+characterLimitPerChunk = config.get("characterLimitPerChunk")
 
 fish_self_api = "https://api.fish.audio/user/self"
 
@@ -60,17 +68,75 @@ else:
 # fish_api.BEARER_TOKEN = BEARER_TOKEN
 if __name__ == "__main__":
     fish_api.set_bearer_token(BEARER_TOKEN)
+
+    logging.info(f"Bearer token set to: '{BEARER_TOKEN}'")
+
     current_credit_balance = int(fish_api.get_current_credit_balance(USER_ID))
     print(f"Current Credit Balance: {current_credit_balance}")
+
+    logging.info(f"Current Credit Balance: {current_credit_balance}")
 
     if current_credit_balance < 0:
         print("Insufficient credits")
 
     voice_id = fish_api.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
+    logging.info(f"Voice ID: {voice_id}")
 
-    studio_project_id = fish_api.create_studio_project(voice_id, "speech-1.5", "Testing Back")
-    print(f"Studio Project ID: {studio_project_id}")
+    input_projects_path = os.path.join(os.getcwd(), INPUT_FOLDER)
+    # input_projects = os.listdir(INPUT_FOLDER)    
+    folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
 
-    chapter_id = fish_api.create_chapter(studio_project_id, "Testing Chapter")
-    print(f"Chapter ID: {chapter_id}")
+    for folder_name in folders:
+        folder_path = os.path.join(input_projects_path, folder_name)
+        print(f"Processing folder: {folder_name}")
+        files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
+        studio_project_id = fish_api.create_studio_project(voice_id, "speech-1.5", folder_name[:10])
+        logging.info(f"Studio Project ID: {studio_project_id} with name: {folder_name[:10]}")
+
+        print(f"Studio Project ID: {studio_project_id}")
+
+        download_links = []
+        for file_name in files:
+            # Create one chapter for each file
+            file_path = os.path.join(folder_path, file_name)
+            print(f"Processing file: {file_name}")
+            logging.info(f"Processing file: {file_name}")
+            chapter_id = fish_api.create_chapter(studio_project_id, file_name[:20])
+            logging.info(f"Chapter ID: {chapter_id} with name: {file_name[:20]}")
+
+            print(f"Chapter ID: {chapter_id}")
+            text_chunks = split_text_by_period(file_path, characterLimitPerChunk)
+
+            no_of_chunks = len(text_chunks)
+            logging.info(f"Number of chunks: {no_of_chunks}")
+            # block_ids = []
+            for i, chunk in enumerate(text_chunks):
+                print(f"Inserting block {i + 1}/{no_of_chunks}...")
+                fish_api.insert_text_block(content=chunk, chapter_id=chapter_id, studio_id=studio_project_id, voice_id=voice_id)
+            
+            blocks = fish_api.get_chapter_blocks(studio_project_id, chapter_id)
+
+            if len(blocks) == no_of_chunks:
+                print(f"All {no_of_chunks} blocks inserted successfully.")
+            
+            print("Exporting chapter...")
+            download_link = fish_api.export_chapter(studio_project_id, chapter_id)
+            print(f"Download link: {download_link}")
+            logging.info(f"Download link: {download_link}")
+            download_links.append(download_link)
+
+        for download_link in download_links:
+            print(f"Downloading from link: {download_link}")
+            # Download the audio file
+            response = requests.get(download_link, headers=headers)
+            if response.status_code == 200:
+                audio_file_name = download_link.split("/")[-1]
+                if not os.path.exists(os.path.join(DOWNLOAD_FOLDER, folder_name)):
+                    os.makedirs(os.path.join(DOWNLOAD_FOLDER, folder_name))
+                audio_file_path = os.path.join(DOWNLOAD_FOLDER, folder_name, audio_file_name)
+                with open(audio_file_path, 'wb') as f:
+                    f.write(response.content)
+                print(f"Downloaded: {audio_file_name}")
+            else:
+                print(f"Error downloading file: {response.status_code}")
