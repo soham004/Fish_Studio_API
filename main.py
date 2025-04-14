@@ -8,6 +8,14 @@ from modules.utils.text_splicer import split_text_by_period
 
 import logging
 
+"""
+TODO:
+- Make a class in fish_api.py to handle all API requests.
+- Use session for requests to avoid re-authentication for every request.
+- Add error handling for API requests.
+"""
+
+
 logging.basicConfig(filename="runtime.log",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 if os.path.exists("config.json"):
@@ -131,9 +139,9 @@ if __name__ == "__main__":
             logging.info(f"Number of chunks: {no_of_chunks}")
             # block_ids = []
             for i, chunk in enumerate(text_chunks):
-                print(f"Inserting block {i + 1}/{no_of_chunks}...")
+                print(f"\rInserting block {i + 1}/{no_of_chunks}...",end="\r")
                 fish_api.insert_text_block(content=chunk, chapter_id=chapter_id, studio_id=studio_project_id, voice_id=voice_id)
-            
+            print()
             blocks = fish_api.get_chapter_blocks(studio_project_id, chapter_id)
 
             if len(blocks) == no_of_chunks:

@@ -185,9 +185,7 @@ def export_chapter(studio_id:str, chapter_id:str):
     }
     with requests.post(export_chapter_api, headers=headers, stream=True, json=data) as response:
         client = sseclient.SSEClient(response)
-        i = 1
-        f = 1
-        j = 1
+        i,f,j = 1,1,1
         for event in client.events():
             try:
                 data = json.loads(event.data)
