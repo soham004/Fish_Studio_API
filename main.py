@@ -10,8 +10,8 @@ import logging
 
 """
 TODO:
-- Make a class in fish_api.py to handle all API requests.
-- Use session for requests to avoid re-authentication for every request.
+- Make a class in fish_api.py to handle all API requests.(done)
+- Use session for requests to avoid re-authentication for every request.(done)
 - Add error handling for API requests.
 """
 
@@ -34,8 +34,6 @@ characterLimitPerChunk = config.get("characterLimitPerChunk")
 
 fish_self_api = "https://api.fish.audio/user/self"
 
-headers={'accept': 'application/json', 'sec-fetch-dest': 'empty', 'sec-fetch-mode': 'cors', 'sec-fetch-site': 'same-site'}
-
 headers = {
     'Authorization': f'Bearer {BEARER_TOKEN}',
     'Accept': 'application/json',
@@ -54,11 +52,13 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
 }
 
+fish_api_calls = fish_api.fish_api_calls(token=BEARER_TOKEN)
+
 response = requests.get(fish_self_api, headers=headers)
 if response.status_code == 200:
     data = response.json()
     # print(data)
-    if data["banned"]:
+    if data["banned"]!="":
         print("Your account is banned.")
         print(f"Banned reason: {data['banned_reason']}")
         exit(1)
@@ -66,7 +66,7 @@ if response.status_code == 200:
     print(f"User ID: {USER_ID}")
     print(f"Username: {data['nickname']}")
     print(f"Email: {data['email']}")
-    fish_api.set_bearer_token(BEARER_TOKEN)
+    fish_api_calls.set_bearer_token(BEARER_TOKEN)
 else:
     print(f"Error: {response.status_code}")
     print(response.text)
@@ -77,8 +77,8 @@ else:
     config["BearerToken"] = BEARER_TOKEN
     logging.info(f"Bearer token fetched using Selenium: {BEARER_TOKEN}")
     
-    # Update the token in the fish_api module
-    fish_api.set_bearer_token(BEARER_TOKEN)
+    # Update the token in the fish_api_calls module
+    fish_api_calls.set_bearer_token(BEARER_TOKEN)
     
     # Update the headers in the current script
     headers['Authorization'] = f'Bearer {BEARER_TOKEN}'
@@ -94,7 +94,7 @@ else:
 
 if __name__ == "__main__":
     
-    voice_id = fish_api.get_voice_id(VOICE_NAME)
+    voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
 
     for folder_name in folders:
-        current_credit_balance = int(fish_api.get_current_credit_balance(USER_ID))
+        current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
         print(f"Current Credit Balance: {current_credit_balance}")
 
         logging.info(f"Current Credit Balance: {current_credit_balance}")
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         folder_path = os.path.join(input_projects_path, folder_name)
         print(f"Processing folder: {folder_name}")
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
-        studio_project_id = fish_api.create_studio_project(voice_id, "speech-1.5", folder_name[:10])
+        studio_project_id = fish_api_calls.create_studio_project(voice_id, "speech-1.5", folder_name[:10])
         logging.info(f"Studio Project ID: {studio_project_id} with name: {folder_name[:10]}")
 
         print(f"Studio Project ID: {studio_project_id}")
@@ -129,7 +129,7 @@ if __name__ == "__main__":
             print(f"Processing file: {file_name}")
             print()
             logging.info(f"Processing file: {file_name}")
-            chapter_id = fish_api.create_chapter(studio_project_id, file_name[:20])
+            chapter_id = fish_api_calls.create_chapter(studio_project_id, file_name[:20])
             logging.info(f"Chapter ID: {chapter_id} with name: {file_name[:20]}")
 
             print(f"Chapter ID: {chapter_id}")
@@ -140,15 +140,15 @@ if __name__ == "__main__":
             # block_ids = []
             for i, chunk in enumerate(text_chunks):
                 print(f"\rInserting block {i + 1}/{no_of_chunks}...",end="\r")
-                fish_api.insert_text_block(content=chunk, chapter_id=chapter_id, studio_id=studio_project_id, voice_id=voice_id)
+                fish_api_calls.insert_text_block(content=chunk, chapter_id=chapter_id, studio_id=studio_project_id, voice_id=voice_id)
             print()
-            blocks = fish_api.get_chapter_blocks(studio_project_id, chapter_id)
+            blocks = fish_api_calls.get_chapter_blocks(studio_project_id, chapter_id)
 
             if len(blocks) == no_of_chunks:
                 print(f"All {no_of_chunks} blocks inserted successfully.")
             
             print("Exporting chapter...")
-            download_link = fish_api.export_chapter(studio_project_id, chapter_id)
+            download_link = fish_api_calls.export_chapter(studio_project_id, chapter_id)
             print(f"Download link: {download_link}")
             logging.info(f"Download link: {download_link}")
             download_links.append(download_link)
