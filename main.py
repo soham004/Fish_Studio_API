@@ -13,7 +13,8 @@ import logging
 TODO:
 - Make a class in fish_api.py to handle all API requests.(done)
 - Use session for requests to avoid re-authentication for every request.(done)
-- Add error handling for API requests.
+- Add error handling for API requests. 
+- Add chapter deletion in case of chunk upload failure and retry the upload.
 """
 
 
