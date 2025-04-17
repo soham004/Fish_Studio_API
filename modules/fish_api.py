@@ -5,7 +5,7 @@ import logging
 
 logging.basicConfig(filename="runtime.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def retry(self, n):
+def retry(n):
     """
     A decorator that retries a method up to n times if it raises an exception.
     """
