@@ -133,7 +133,7 @@ if __name__ == "__main__":
             chapter_id = fish_api_calls.create_chapter(studio_project_id, file_name[:20])
             logging.info(f"Chapter ID: {chapter_id} with name: {file_name[:20]}")
 
-            print(f"Chapter ID: {chapter_id}")
+            print(f"Chapter {file_name[:20]} ID: {chapter_id}")
             text_chunks = split_text_by_period(file_path, characterLimitPerChunk)
 
             no_of_chunks = len(text_chunks)
