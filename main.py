@@ -92,6 +92,26 @@ else:
     # input("Please run the script again.")
     # exit(1)
 
+def download_from_link(download_link:str, folder_name:str, download_folder:str) -> None:
+    print(f"Downloading from link: {download_link}")
+    # Download the audio file
+    time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
+    response = requests.get(download_link, headers=headers)
+    if response.status_code == 200:
+        audio_file_name = download_link.split("/")[-1]
+
+        cleaned_file_name = audio_file_name[22:] # Remove the first 22 characters i.e the timestamps
+        if len(cleaned_file_name) > 4:
+            audio_file_name = cleaned_file_name
+        
+        if not os.path.exists(os.path.join(download_folder, folder_name)):
+            os.makedirs(os.path.join(download_folder, folder_name))
+        audio_file_path = os.path.join(download_folder, folder_name, audio_file_name)
+        with open(audio_file_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Downloaded: {audio_file_name}")
+    else:
+        print(f"Error downloading file: {response.status_code}")
 
 if __name__ == "__main__":
     
@@ -164,18 +184,5 @@ if __name__ == "__main__":
         logging.info(f"All chapters exported successfully. Downloading audio files...")
 
         for download_link in download_links:
-            print(f"Downloading from link: {download_link}")
-            # Download the audio file
-            time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
-            response = requests.get(download_link, headers=headers)
-            if response.status_code == 200:
-                audio_file_name = download_link.split("/")[-1]
-                if not os.path.exists(os.path.join(DOWNLOAD_FOLDER, folder_name)):
-                    os.makedirs(os.path.join(DOWNLOAD_FOLDER, folder_name))
-                audio_file_path = os.path.join(DOWNLOAD_FOLDER, folder_name, audio_file_name)
-                with open(audio_file_path, 'wb') as f:
-                    f.write(response.content)
-                print(f"Downloaded: {audio_file_name}")
-            else:
-                print(f"Error downloading file: {response.status_code}")
+            download_from_link(download_link, folder_name, DOWNLOAD_FOLDER)
         
