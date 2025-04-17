@@ -88,8 +88,8 @@ else:
         json.dump(config, f, indent=4)
     
     print("Bearer token updated in config.json.")
-    input("Please run the script again.")
-    exit(1)
+    # input("Please run the script again.")
+    # exit(1)
 
 
 if __name__ == "__main__":
