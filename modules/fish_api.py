@@ -181,6 +181,7 @@ class fish_api_calls:
                 i, f, j = 1, 1, 1
                 for event in client.events():
                     try:
+                        logging.info(f"Event: {event.data}")
                         data = json.loads(event.data)
                         event_type = data.get("type")
                         # print("Received event:", data)
