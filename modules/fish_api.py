@@ -5,6 +5,25 @@ import logging
 
 logging.basicConfig(filename="runtime.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def retry(self, n):
+    """
+    A decorator that retries a method up to n times if it raises an exception.
+    """
+    def decorator(func):
+        def wrapper(self_obj, *args, **kwargs):
+            for attempt in range(1, n + 1):
+                try:
+                    return func(self_obj, *args, **kwargs)
+                except Exception as e:
+                    print(f"Attempt {attempt} failed with error: {e}")
+                    logging.error(f"Attempt {attempt} failed with error: {e}")
+                    logging.info(f"Headers: {dict(self_obj.session.headers)}")
+                    if attempt == n:
+                        print("All retry attempts failed.")
+                        raise
+        return wrapper
+    return decorator
+
 class fish_api_calls:
     def __init__(self, token=None, session=None):
         self.BEARER_TOKEN = token
@@ -37,24 +56,7 @@ class fish_api_calls:
         }
         self.session.headers.update(headers)
     
-    def retry(self, n):
-        """
-        A decorator that retries a method up to n times if it raises an exception.
-        """
-        def decorator(func):
-            def wrapper(self_obj, *args, **kwargs):
-                for attempt in range(1, n + 1):
-                    try:
-                        return func(self_obj, *args, **kwargs)
-                    except Exception as e:
-                        print(f"Attempt {attempt} failed with error: {e}")
-                        logging.error(f"Attempt {attempt} failed with error: {e}")
-                        logging.info(f"Headers: {dict(self_obj.session.headers)}")
-                        if attempt == n:
-                            print("All retry attempts failed.")
-                            raise
-            return wrapper
-        return decorator
+    
 
     def set_bearer_token(self, token):
         self.BEARER_TOKEN = token
