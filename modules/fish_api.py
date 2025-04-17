@@ -186,7 +186,7 @@ class fish_api_calls:
                         event_type = data.get("type")
                         # print("Received event:", data)
                         if event_type == "generate-audio":
-                            print(f"\rGenerating audio... {i}", end="\r")
+                            print(f"\rGenerating audio started... {i}", end="\r")
                             i += 1
                         if event_type == "generate-audio-finished":
                             print(f"\rFinished generating block: {f}", end="\r")
