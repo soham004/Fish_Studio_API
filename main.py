@@ -57,9 +57,8 @@ fish_api_calls = fish_api.fish_api_calls(token=BEARER_TOKEN)
 response = requests.get(fish_self_api, headers=headers)
 if response.status_code == 200:
     data = response.json()
-    print(data)
-    if data["banned"]!="":
-
+    # print(data)
+    if data["banned"]: # Its a True False value
         print("Your account is banned.")
         print(f"Banned reason: '{data['banned_reason']}'")
         exit(1)
