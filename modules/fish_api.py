@@ -115,7 +115,7 @@ class fish_api_calls:
     def create_chapter(self, project_id:str, title:str)-> str:
         create_chapter_api = f"https://api.fish.audio/studio/{project_id}/chapters"
         data = {
-            "title": title
+            "title": title[:20],
         }
         response = self.session.post(create_chapter_api, json=data)
         if response.status_code < 300:
