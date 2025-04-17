@@ -62,11 +62,7 @@ class fish_api_calls:
         print(f"Bearer token set to: '{self.BEARER_TOKEN}'")
         logging.info(f"Bearer token set to: '{self.BEARER_TOKEN}'")
 
-    @property
-    def retry_decorator(self):
-        return self.retry(3)
-
-    @retry_decorator
+    @retry(3)
     def get_current_credit_balance(self, user_id:str)-> int:
         wallet_api_url = f"https://api.fish.audio/wallet/{user_id}/package"
         response = self.session.get(wallet_api_url)
@@ -79,7 +75,7 @@ class fish_api_calls:
         else:
             raise Exception(f"Error fetching credit balance: {response.status_code}")
 
-    @retry_decorator
+    @retry(3)
     def get_voice_id(self, voice_name:str)-> str:
         voice_api_url = f"https://api.fish.audio/model/latest-used?page_size=10&page_number=1"
         response = self.session.get(voice_api_url)
@@ -95,7 +91,7 @@ class fish_api_calls:
         else:
             raise Exception(f"Error fetching voice ID: {response.status_code}")
         
-    @retry_decorator
+    @retry(3)
     def create_studio_project(self, default_voice_id:str, default_backend:str, name:str)-> str:
         create_studio_project_api = "https://api.fish.audio/studio"
         data = {
@@ -113,7 +109,7 @@ class fish_api_calls:
         else:
             raise Exception(f"Error creating studio project: {response.status_code}")
 
-    @retry_decorator
+    @retry(3)
     def create_chapter(self, project_id:str, title:str)-> str:
         create_chapter_api = f"https://api.fish.audio/studio/{project_id}/chapters"
         data = {
@@ -129,7 +125,7 @@ class fish_api_calls:
         else:
             raise Exception(f"Error creating chapter: {response.status_code}")
 
-    @retry_decorator
+    @retry(3)
     def insert_text_block(self, content:str, studio_id:str, chapter_id:str, voice_id:str) -> str:
         insert_text_block_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}/blocks"
         data = {
@@ -147,7 +143,7 @@ class fish_api_calls:
         else:
             raise Exception(f"Error inserting text block: {response.status_code}")
 
-    @retry_decorator
+    @retry(3)
     def get_chapter_blocks(self, studio_id:str, chapter_id:str):
         get_chapter_blocks_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}/blocks"
         response = self.session.get(get_chapter_blocks_api)
