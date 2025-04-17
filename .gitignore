@@ -2,6 +2,6 @@
 test.py
 output.py
 *.pyc
-
+*.txt
 *.log
 *.mp3
