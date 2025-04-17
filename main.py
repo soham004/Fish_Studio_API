@@ -1,7 +1,8 @@
 import json
 import os
 import requests
-
+import time
+import random
 from modules.bearer_fetch import fetch_bearer_using_selenium
 from modules import fish_api
 from modules.utils.text_splicer import split_text_by_period
@@ -125,10 +126,12 @@ if __name__ == "__main__":
 
         download_links = []
         for file_name in files:
+            print("\n")
             # Create one chapter for each file
             file_path = os.path.join(folder_path, file_name)
             print(f"Processing file: {file_name}")
             print()
+            time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
             logging.info(f"Processing file: {file_name}")
             chapter_id = fish_api_calls.create_chapter(studio_project_id, file_name[:20])
             logging.info(f"Chapter ID: {chapter_id} with name: {file_name[:20]}")
@@ -141,14 +144,17 @@ if __name__ == "__main__":
             # block_ids = []
             for i, chunk in enumerate(text_chunks):
                 print(f"\rInserting block {i + 1}/{no_of_chunks}...",end="\r")
+                time.sleep(random.uniform(0,1))  # Random sleep between 0 and 1 seconds
                 fish_api_calls.insert_text_block(content=chunk, chapter_id=chapter_id, studio_id=studio_project_id, voice_id=voice_id)
             print()
+            time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
             blocks = fish_api_calls.get_chapter_blocks(studio_project_id, chapter_id)
 
             if len(blocks) == no_of_chunks:
                 print(f"All {no_of_chunks} blocks inserted successfully.")
             
             print("Exporting chapter...")
+            time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
             download_link = fish_api_calls.export_chapter(studio_project_id, chapter_id)
             print(f"Download link: {download_link}")
             logging.info(f"Download link: {download_link}")
@@ -160,6 +166,7 @@ if __name__ == "__main__":
         for download_link in download_links:
             print(f"Downloading from link: {download_link}")
             # Download the audio file
+            time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
             response = requests.get(download_link, headers=headers)
             if response.status_code == 200:
                 audio_file_name = download_link.split("/")[-1]
