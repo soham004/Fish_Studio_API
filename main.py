@@ -25,6 +25,16 @@ if os.path.exists("config.json"):
         config = json.load(f)
 else:
     print("config.json not found. Please create a config.json file.")
+    print("Example config.json:")
+    print("""
+{
+    "BearerToken": "",
+    "Email": "email@domain.com",
+    "Password": "Password",
+    "characterLimitPerChunk": 500,
+    "Voice_Name": "Very Original Name"
+}
+""")
     exit(1)
 
 BEARER_TOKEN = config.get("BearerToken")
