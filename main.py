@@ -103,6 +103,7 @@ if __name__ == "__main__":
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
 
     for folder_name in folders:
+        print("\n\n")
         current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
         print(f"Current Credit Balance: {current_credit_balance}")
 
@@ -170,3 +171,4 @@ if __name__ == "__main__":
                 print(f"Downloaded: {audio_file_name}")
             else:
                 print(f"Error downloading file: {response.status_code}")
+        
