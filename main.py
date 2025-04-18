@@ -124,8 +124,8 @@ if __name__ == "__main__":
             json.dump(config, f, indent=4)
         
         print("Bearer token updated in config.json.")
-        # input("Please run the script again.")
-        # exit(1)
+        print("Please run the script again.")
+        exit(1)
         
     voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
@@ -156,6 +156,10 @@ if __name__ == "__main__":
         folder_path = os.path.join(input_projects_path, folder_name)
         print(f"Processing folder: {folder_name}")
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
+        if len(files) == 0:
+            print(f"No files found in {folder_name}.")
+            logging.info(f"No files found in {folder_path}.")
+            continue
         studio_project_id = fish_api_calls.create_studio_project(voice_id, "speech-1.5", folder_name[:10])
         logging.info(f"Studio Project ID: {studio_project_id} with name: {folder_name[:10]}")
 
