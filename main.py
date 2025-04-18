@@ -27,7 +27,8 @@ if os.path.exists("config.json"):
 else:
     print("config.json not found. Please create a config.json file.")
     print("Example config.json:")
-    print("""
+    print(
+"""
 {
     "BearerToken": "",
     "Email": "email@domain.com",
@@ -65,45 +66,6 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
 }
 
-fish_api_calls = fish_api.fish_api_calls(token=BEARER_TOKEN)
-
-response = requests.get(fish_self_api, headers=headers)
-if response.status_code == 200:
-    data = response.json()
-    # print(data)
-    if data["banned"]: # Its a True False value
-        print("Your account is banned.")
-        print(f"Banned reason: '{data['banned_reason']}'")
-        exit(1)
-    USER_ID = data['_id']
-    print(f"User ID: {USER_ID}")
-    print(f"Username: {data['nickname']}")
-    print(f"Email: {data['email']}")
-    fish_api_calls.set_bearer_token(BEARER_TOKEN)
-else:
-    print(f"Error: {response.status_code}")
-    print(response.text)
-    print("Fetching Bearer token using Selenium...")
-    email = config['Email']
-    password = config['Password']
-    BEARER_TOKEN = fetch_bearer_using_selenium(email, password)
-    config["BearerToken"] = BEARER_TOKEN
-    logging.info(f"Bearer token fetched using Selenium: {BEARER_TOKEN}")
-    
-    # Update the token in the fish_api_calls module
-    fish_api_calls.set_bearer_token(BEARER_TOKEN)
-    
-    # Update the headers in the current script
-    headers['Authorization'] = f'Bearer {BEARER_TOKEN}'
-    
-    # Save the updated token to the config file
-    with open("config.json", "w") as f:
-        json.dump(config, f, indent=4)
-    
-    print("Bearer token updated in config.json.")
-    # input("Please run the script again.")
-    # exit(1)
-
 def download_from_link(download_link:str, folder_name:str, download_folder:str) -> None:
     print(f"Downloading from link: {download_link}")
     # Download the audio file
@@ -127,6 +89,44 @@ def download_from_link(download_link:str, folder_name:str, download_folder:str) 
 
 if __name__ == "__main__":
     
+    fish_api_calls = fish_api.fish_api_calls(token=BEARER_TOKEN)
+    response = requests.get(fish_self_api, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        # print(data)
+        if data["banned"]: # Its a True False value
+            print("Your account is banned.")
+            print(f"Banned reason: '{data['banned_reason']}'")
+            exit(1)
+        USER_ID = data['_id']
+        print(f"User ID: {USER_ID}")
+        print(f"Username: {data['nickname']}")
+        print(f"Email: {data['email']}")
+        fish_api_calls.set_bearer_token(BEARER_TOKEN)
+    else:
+        print(f"Error: {response.status_code}")
+        print(response.text)
+        print("Fetching Bearer token using Selenium...")
+        email = config['Email']
+        password = config['Password']
+        BEARER_TOKEN = fetch_bearer_using_selenium(email, password)
+        config["BearerToken"] = BEARER_TOKEN
+        logging.info(f"Bearer token fetched using Selenium: {BEARER_TOKEN}")
+        
+        # Update the token in the fish_api_calls module
+        fish_api_calls.set_bearer_token(BEARER_TOKEN)
+        
+        # Update the headers in the current script
+        headers['Authorization'] = f'Bearer {BEARER_TOKEN}'
+        
+        # Save the updated token to the config file
+        with open("config.json", "w") as f:
+            json.dump(config, f, indent=4)
+        
+        print("Bearer token updated in config.json.")
+        # input("Please run the script again.")
+        # exit(1)
+        
     voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
@@ -134,6 +134,11 @@ if __name__ == "__main__":
     input_projects_path = os.path.join(os.getcwd(), INPUT_FOLDER)
     # input_projects = os.listdir(INPUT_FOLDER)    
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
+
+    if len(folders) == 0:
+        print(f"No folders found in {input_projects_path}.")
+        logging.info(f"No folders found in {input_projects_path}.")
+        exit(1)
 
     for folder_name in folders:
         print("\n\n")
