@@ -15,8 +15,8 @@ def retry(n):
                 try:
                     return func(self_obj, *args, **kwargs)
                 except Exception as e:
-                    print(f"Attempt {attempt} failed with error: {e}")
-                    logging.error(f"Attempt {attempt} failed with error: {e}")
+                    print(f"Attempt {attempt} failed with error: {e} from function: {func.__name__}")
+                    logging.error(f"Attempt {attempt} failed with error: {e} from function: {func.__name__}")
                     logging.info(f"Headers: {dict(self_obj.session.headers)}")
                     if attempt == n:
                         print("All retry attempts failed.")
