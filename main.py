@@ -139,10 +139,9 @@ if __name__ == "__main__":
         print(f"No folders found in {input_projects_path}.")
         logging.info(f"No folders found in {input_projects_path}.")
         exit(1)
-
+    current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
     for folder_name in folders:
         print("\n\n")
-        current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
         print(f"Current Credit Balance: {current_credit_balance}")
 
         logging.info(f"Current Credit Balance: {current_credit_balance}")
@@ -211,7 +210,10 @@ if __name__ == "__main__":
             print(f"Download link: {download_link}")
             logging.info(f"Download link: {download_link}")
             download_links.append(download_link)
+            chapter_credit_cost = get_utf8_bytes_size_from_file(file_path)
+            current_credit_balance -= chapter_credit_cost
 
+        # current_credit_balance -= credits_required
         print(f"All chapters exported successfully. Downloading audio files for project {folder_name}...")
         logging.info(f"All chapters exported successfully. Downloading audio files...")
 

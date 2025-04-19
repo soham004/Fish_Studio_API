@@ -44,9 +44,11 @@ def split_text_by_period(filename: str, limit: int) -> list:
 
 
 def get_utf8_bytes_size_from_file(filename: str) -> int:
-    with open(filename, 'rb') as file:
-        content = file.read()
-    return len(content)
+    # Use textCleanUp to clean up the text before calculating size
+    with open(filename, 'r', encoding='utf-8') as file:
+        text = file.read()
+        cleaned_text = textCleanUp(text)
+        return len(cleaned_text.encode('utf-8'))
 
 def get_utf8_bytes_size_from_files(filenames: list) -> int:
     # Use textCleanUp to clean up the text before calculating size

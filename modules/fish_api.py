@@ -55,8 +55,6 @@ class fish_api_calls:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
         }
         self.session.headers.update(headers)
-    
-    
 
     def set_bearer_token(self, token):
         self.BEARER_TOKEN = token
