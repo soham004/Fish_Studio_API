@@ -151,19 +151,30 @@ if __name__ == "__main__":
             config["BearerToken"] = bearer_token
             logging.info(f"Bearer token fetched using Selenium: {bearer_token}")
             
-            # Update the token in the fish_api_calls module
-            # fish_api_calls.set_bearer_token(bearer_token)
             
-            # Update the headers in the current script
             headers['Authorization'] = f'Bearer {bearer_token}'
-            
+            with requests.get(fish_self_api, headers=headers) as response:
+                if response.status_code == 200:
+                    data = response.json()
+                    # print(data)
+                    if data["banned"]: # Its a True False value
+                        print("Your account is banned.")
+                        print(f"Banned reason: '{data['banned_reason']}'")
+                        exit(1)
+                    USER_ID = data['_id']
+                    print(f"User ID: {USER_ID}")
+                    print(f"Username: {data['nickname']}")
+                    print(f"Email: {data['email']}")
+                else:
+                    print(f"Error: {response.status_code}")
+                    print(response.text)
+                    print("Bearer token is invalid. Please retry...")
+                    exit(1)
             # Save the updated token to the config file
             with open("config.json", "w") as f:
                 json.dump(config, f, indent=4)
             
             print("Bearer token updated in config.json.")
-            # print("Please run the script again.")
-            # exit(1)
 
 
     fish_api_calls = fish_api.fish_api_calls(token=bearer_token)
@@ -172,7 +183,7 @@ if __name__ == "__main__":
     logging.info(f"Voice ID: {voice_id}")
 
     input_projects_path = os.path.join(os.getcwd(), INPUT_FOLDER)
-    # input_projects = os.listdir(INPUT_FOLDER)    
+
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
 
     if len(folders) == 0:
@@ -182,27 +193,20 @@ if __name__ == "__main__":
     
     current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
     failed_files_dict_list = []
+
     for folder_name in folders:
+
         failed_files_dict = {
             "folder_name": folder_name,
             "failed_files": []
         }
         print("\n\n")
-        print(f"Current Credit Balance: {current_credit_balance}")
-
-        logging.info(f"Current Credit Balance: {current_credit_balance}")
-        
         folder_path = os.path.join(input_projects_path, folder_name)
         print(f"Processing folder: {folder_name}")
 
+        print(f"Current Credit Balance: {current_credit_balance}")
+        logging.info(f"Current Credit Balance: {current_credit_balance}")
 
-        files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
-
-        if len(files) == 0:
-            print(f"No files found in {folder_name}.")
-            logging.info(f"No files found in {folder_path}.")
-            continue
-        
         file_absolute_paths = [os.path.join(folder_path, f) for f in files]
 
         credits_required = get_utf8_bytes_size_from_files(file_absolute_paths)
@@ -215,12 +219,20 @@ if __name__ == "__main__":
             logging.info(f"Not enough credits. Required: {credits_required}, Available: {current_credit_balance}")
             continue
 
+        files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
+
+        if len(files) == 0:
+            print(f"No files found in {folder_name}.")
+            logging.info(f"No files found in {folder_path}.")
+            continue
+
         studio_project_id = fish_api_calls.create_studio_project(voice_id, "speech-1.5", folder_name[:10])
         logging.info(f"Studio Project ID: {studio_project_id} with name: {folder_name[:10]}")
 
         print(f"Studio Project ID: {studio_project_id}")
         download_link = None
         download_links = []
+
         for file_name in files:
 
             retries = 3
@@ -267,7 +279,7 @@ if __name__ == "__main__":
 
         if len(failed_files_dict["failed_files"]) > 0:
             failed_files_dict_list.append(failed_files_dict)
-        # current_credit_balance -= credits_required
+        
         print(f"All chapters exported successfully. Downloading audio files for project {folder_name}...")
         logging.info(f"All chapters exported successfully. Downloading audio files...")
 
