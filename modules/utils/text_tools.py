@@ -43,6 +43,21 @@ def split_text_by_period(filename: str, limit: int) -> list:
     return chunks
 
 
+def get_utf8_bytes_size_from_file(filename: str) -> int:
+    with open(filename, 'rb') as file:
+        content = file.read()
+    return len(content)
+
+def get_utf8_bytes_size_from_files(filenames: list) -> int:
+    # Use textCleanUp to clean up the text before calculating size
+    total_size = 0
+    for filename in filenames:
+        with open(filename, 'r', encoding='utf-8') as file:
+            text = file.read()
+            cleaned_text = textCleanUp(text)
+            total_size += len(cleaned_text.encode('utf-8'))
+    return total_size
+
 if __name__ == "__main__":
     while True:
         file = input("Please input the file to splice.\n>>>")

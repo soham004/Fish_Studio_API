@@ -5,7 +5,7 @@ import time
 import random
 from modules.bearer_fetch import fetch_bearer_using_selenium
 from modules import fish_api
-from modules.utils.text_splicer import split_text_by_period
+from modules.utils.text_tools import *
 
 import logging
 
@@ -39,7 +39,7 @@ else:
 """)
     exit(1)
 
-BEARER_TOKEN = config.get("BearerToken")
+bearer_token = config.get("BearerToken")
 USER_ID = None
 VOICE_NAME = config.get("Voice_Name")
 INPUT_FOLDER = 'inputFiles'
@@ -49,7 +49,7 @@ characterLimitPerChunk = config.get("characterLimitPerChunk")
 fish_self_api = "https://api.fish.audio/user/self"
 
 headers = {
-    'Authorization': f'Bearer {BEARER_TOKEN}',
+    'Authorization': f'Bearer {bearer_token}',
     'Accept': 'application/json',
     'Accept-Encoding': 'gzip, deflate, br, zstd',
     'Accept-Language': 'en-US,en;q=0.6',
@@ -89,7 +89,6 @@ def download_from_link(download_link:str, folder_name:str, download_folder:str) 
 
 if __name__ == "__main__":
     
-    fish_api_calls = fish_api.fish_api_calls(token=BEARER_TOKEN)
     response = requests.get(fish_self_api, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -102,31 +101,32 @@ if __name__ == "__main__":
         print(f"User ID: {USER_ID}")
         print(f"Username: {data['nickname']}")
         print(f"Email: {data['email']}")
-        fish_api_calls.set_bearer_token(BEARER_TOKEN)
+        # fish_api_calls.set_bearer_token(bearer_token)
     else:
         print(f"Error: {response.status_code}")
         print(response.text)
         print("Fetching Bearer token using Selenium...")
         email = config['Email']
         password = config['Password']
-        BEARER_TOKEN = fetch_bearer_using_selenium(email, password)
-        config["BearerToken"] = BEARER_TOKEN
-        logging.info(f"Bearer token fetched using Selenium: {BEARER_TOKEN}")
+        bearer_token = fetch_bearer_using_selenium(email, password)
+        config["BearerToken"] = bearer_token
+        logging.info(f"Bearer token fetched using Selenium: {bearer_token}")
         
         # Update the token in the fish_api_calls module
-        fish_api_calls.set_bearer_token(BEARER_TOKEN)
+        # fish_api_calls.set_bearer_token(bearer_token)
         
         # Update the headers in the current script
-        headers['Authorization'] = f'Bearer {BEARER_TOKEN}'
+        headers['Authorization'] = f'Bearer {bearer_token}'
         
         # Save the updated token to the config file
         with open("config.json", "w") as f:
             json.dump(config, f, indent=4)
         
         print("Bearer token updated in config.json.")
-        print("Please run the script again.")
-        exit(1)
-        
+        # print("Please run the script again.")
+        # exit(1)
+    
+    fish_api_calls = fish_api.fish_api_calls(token=bearer_token)
     voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
@@ -146,20 +146,30 @@ if __name__ == "__main__":
         print(f"Current Credit Balance: {current_credit_balance}")
 
         logging.info(f"Current Credit Balance: {current_credit_balance}")
-
-        if current_credit_balance < 10000:
-            print(f"Low credits: {current_credit_balance} credits left.")
-            logging.info(f"Low credits: {current_credit_balance} credits left.")
-            # logging.info("Low credits")
-            input("Press Enter to continue or press (Ctrl+c) to stop...")
         
         folder_path = os.path.join(input_projects_path, folder_name)
         print(f"Processing folder: {folder_name}")
+
+
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
+
         if len(files) == 0:
             print(f"No files found in {folder_name}.")
             logging.info(f"No files found in {folder_path}.")
             continue
+        
+        file_absolute_paths = [os.path.join(folder_path, f) for f in files]
+
+        credits_required = get_utf8_bytes_size_from_files(file_absolute_paths)
+
+        print(f"Credits required: {credits_required}")
+        logging.info(f"Credits required: {credits_required}")
+
+        if credits_required > current_credit_balance:
+            print(f"Not enough credits to generate the whole project. Required: {credits_required}, Available: {current_credit_balance}")
+            logging.info(f"Not enough credits. Required: {credits_required}, Available: {current_credit_balance}")
+            continue
+
         studio_project_id = fish_api_calls.create_studio_project(voice_id, "speech-1.5", folder_name[:10])
         logging.info(f"Studio Project ID: {studio_project_id} with name: {folder_name[:10]}")
 
@@ -171,9 +181,10 @@ if __name__ == "__main__":
             # Create one chapter for each file
             file_path = os.path.join(folder_path, file_name)
             print(f"Processing file: {file_name}")
+            logging.info(f"Processing file: {file_name}")
             print()
             time.sleep(random.randint(1, 5))  # Random sleep between 1 and 3 seconds
-            logging.info(f"Processing file: {file_name}")
+            
             chapter_id = fish_api_calls.create_chapter(studio_project_id, file_name[:20])
             logging.info(f"Chapter ID: {chapter_id} with name: {file_name[:20]}")
 

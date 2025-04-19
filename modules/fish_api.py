@@ -158,6 +158,7 @@ class fish_api_calls:
         else:
             raise Exception(f"Error fetching chapter blocks: {response.status_code}")
 
+    @retry(3)
     def export_chapter(self, studio_id:str, chapter_id:str):
         export_chapter_api = f"https://api.fish.audio/studio/{studio_id}/export"
         
@@ -179,6 +180,7 @@ class fish_api_calls:
             with self.session.post(export_chapter_api, stream=True, json=data) as response:
                 client = sseclient.SSEClient(response)
                 i, f, j = 1, 1, 1
+                download_url = None
                 for event in client.events():
                     try:
                         logging.info(f"Event: {event.data}")
@@ -198,11 +200,17 @@ class fish_api_calls:
                             if data.get("message") == "concatenating-progress":
                                 print(f"\rConcatenation progress: {data.get('progress')}%", end="\r")
                         if event_type == "complete":
-                            return data.get("url")
+                            download_url =  data.get("url")
                     except json.JSONDecodeError:
                         print("Received non-JSON event:", event.data)
                 
                 print("\nExport process completed.")
+                logging.info("Export process completed.")
         finally:
             # Always restore the original Accept header
             self.session.headers.update({'Accept': original_accept})
+        
+        if download_url != None:
+            return download_url
+        else:
+            raise Exception("Download URL not found in the export response.")
