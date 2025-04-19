@@ -128,6 +128,9 @@ class fish_api_calls:
     @retry(3)
     def delete_chapter(self, studio_id:str, chapter_id:str)-> str:
         delete_chapter_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}"
+
+        response = self.session.options(delete_chapter_api) # This is just to simulate default browser baheviour
+
         response = self.session.delete(delete_chapter_api)
         if response.status_code < 300:
             return True
@@ -188,6 +191,9 @@ class fish_api_calls:
         
         try:
             with self.session.post(export_chapter_api, stream=True, json=data) as response:
+                if response.status_code == 401:
+                    print(f"Error: Unauthorized. Please check your bearer token.")
+                    raise Exception("Unauthorized during export. Please check your bearer token.")
                 client = sseclient.SSEClient(response)
                 i, f, j = 1, 1, 1
                 download_url = None

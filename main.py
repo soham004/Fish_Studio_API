@@ -14,8 +14,10 @@ TODO:
 - Make a class in fish_api.py to handle all API requests.(done)
 - Use session for requests to avoid re-authentication for every request.(done)
 - Add error handling for API requests. 
-- Add chapter deletion in case of chunk upload failure and retry the upload.
+- Add chapter deletion in case of chunk upload failure and retry the upload.(done)
 - Inform user if selected voice is not available.
+- Remove all the hard exits and use exceptions instead.
+
 """
 
 
@@ -151,7 +153,7 @@ if __name__ == "__main__":
             config["BearerToken"] = bearer_token
             logging.info(f"Bearer token fetched using Selenium: {bearer_token}")
             
-            
+
             headers['Authorization'] = f'Bearer {bearer_token}'
             with requests.get(fish_self_api, headers=headers) as response:
                 if response.status_code == 200:
