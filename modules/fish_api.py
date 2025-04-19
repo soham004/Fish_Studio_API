@@ -126,6 +126,18 @@ class fish_api_calls:
             raise Exception(f"Error creating chapter: {response.status_code}")
 
     @retry(3)
+    def delete_chapter(self, studio_id:str, chapter_id:str)-> str:
+        delete_chapter_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}"
+        response = self.session.delete(delete_chapter_api)
+        if response.status_code < 300:
+            return True
+        elif response.status_code == 401:
+            print(f"Error: Unauthorized. Please check your bearer token.")
+            exit()
+        else:
+            raise Exception(f"Error deleting chapter: {response.status_code}")
+
+    @retry(3)
     def insert_text_block(self, content:str, studio_id:str, chapter_id:str, voice_id:str) -> str:
         insert_text_block_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}/blocks"
         data = {
