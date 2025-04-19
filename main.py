@@ -265,7 +265,8 @@ if __name__ == "__main__":
             chapter_credit_cost = get_utf8_bytes_size_from_file(file_path)
             current_credit_balance -= chapter_credit_cost
 
-        failed_files_dict_list.append(failed_files_dict)
+        if len(failed_files_dict["failed_files"]) > 0:
+            failed_files_dict_list.append(failed_files_dict)
         # current_credit_balance -= credits_required
         print(f"All chapters exported successfully. Downloading audio files for project {folder_name}...")
         logging.info(f"All chapters exported successfully. Downloading audio files...")
