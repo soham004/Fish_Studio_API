@@ -16,9 +16,9 @@ TODO:
 - Use session for requests to avoid re-authentication for every request.(done)
 - Add error handling for API requests. 
 - Add chapter deletion in case of chunk upload failure and retry the upload.(done)
-- Inform user if selected voice is not available.
+- Inform user if selected voice is not available.(done)
 - Remove all the hard exits and use exceptions instead.
-
+- Add chapter grouping for exporting multiple chapters at a time
 """
 
 
