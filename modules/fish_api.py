@@ -3,6 +3,8 @@ import json
 import sseclient
 import logging
 
+from modules.bearer_fetch import fetch_bearer_using_selenium
+
 logging.basicConfig(filename="runtime.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def retry(n):
@@ -61,6 +63,15 @@ class fish_api_calls:
         self._configure_session_headers()
         print(f"Bearer token set to: '{self.BEARER_TOKEN}'")
         logging.info(f"Bearer token set to: '{self.BEARER_TOKEN}'")
+
+    def refresh_bearer_token(self):
+        with open("config.json") as f:
+            config = json.load(f)
+        email = config['Email']
+        password = config['Password']
+        bearer_token = fetch_bearer_using_selenium(email, password)
+        self.set_bearer_token(bearer_token)
+
 
     @retry(3)
     def get_current_credit_balance(self, user_id:str)-> int:

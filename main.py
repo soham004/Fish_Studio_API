@@ -6,6 +6,7 @@ import random
 from modules.bearer_fetch import fetch_bearer_using_selenium
 from modules import fish_api
 from modules.utils.text_tools import *
+from modules.utils.notifier import notify
 
 import logging
 
