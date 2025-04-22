@@ -96,6 +96,7 @@ class fish_api_calls:
                 # print(voice)
                 if voice['title'] == voice_name:
                     return voice['_id']
+            return None
         elif response.status_code == 401:
             print(f"Error: Unauthorized. Please check your bearer token.")
             exit()
@@ -218,14 +219,14 @@ class fish_api_calls:
                             print(f"\rGenerating audio started... {i}", end="\r")
                             i += 1
                         if event_type == "generate-audio-finished":
-                            print(f"\rFinished generating block: {f}", end="\r")
+                            print(f"\rFinished generating block:  {f}", end="\r")
                             f += 1
                         if event_type == "progress-fetch-audio":
-                            print(f"\rFetching audio... {j}", end="\r")
+                            print(f"\rFetching audio............  {j}", end="\r")
                             j += 1
                         if event_type == "message":
                             if data.get("message") == "concatenating-progress":
-                                print(f"\rConcatenation progress: {data.get('progress')}%", end="\r")
+                                print(f"\rConcatenation progress: {data.get('progress')}%  ", end="\r")
                         if event_type == "complete":
                             download_url =  data.get("url")
                     except json.JSONDecodeError:

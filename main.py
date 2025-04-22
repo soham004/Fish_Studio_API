@@ -182,6 +182,9 @@ if __name__ == "__main__":
 
     fish_api_calls = fish_api.fish_api_calls(token=bearer_token)
     voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
+    if voice_id == None:
+        print("The selected voice is not available")
+        exit(1)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
 
