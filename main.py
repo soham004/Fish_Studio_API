@@ -209,7 +209,7 @@ if __name__ == "__main__":
         print("\n\n")
         folder_path = os.path.join(input_projects_path, folder_name)
         print(f"Processing folder: {folder_name}")
-
+        files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
         print(f"Current Credit Balance: {current_credit_balance}")
         logging.info(f"Current Credit Balance: {current_credit_balance}")
 
