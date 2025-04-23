@@ -216,13 +216,13 @@ class fish_api_calls:
                         event_type = data.get("type")
                         # print("Received event:", data)
                         if event_type == "generate-audio":
-                            print(f"\rGenerating audio started... {i}", end="\r")
+                            print(f"\rGenerating audio started... {i} ", end="\r")
                             i += 1
                         if event_type == "generate-audio-finished":
-                            print(f"\rFinished generating block:  {f}", end="\r")
+                            print(f"\rFinished generating block:  {f} ", end="\r")
                             f += 1
                         if event_type == "progress-fetch-audio":
-                            print(f"\rFetching audio............  {j}", end="\r")
+                            print(f"\rFetching audio for block....{j} ", end="\r")
                             j += 1
                         if event_type == "message":
                             if data.get("message") == "concatenating-progress":
