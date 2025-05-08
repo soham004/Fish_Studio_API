@@ -129,6 +129,21 @@ def display_failed_files(failed_files_dict_list):
             print(f"No failed files in folder {failed_files_dict['folder_name']}")
             logging.info(f"No failed files in folder {failed_files_dict['folder_name']}")
 
+def wait_for_credits_to_refresh(credits_required):
+    """
+    Wait for credits to refresh. 
+    """
+    print(f"Waiting for credits to refresh...")
+    while True:
+        current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
+        if current_credit_balance >= credits_required:
+            print(f"Credits refreshed. Current balance: {current_credit_balance}")
+            logging.info(f"Credits refreshed. Current balance: {current_credit_balance}")
+            return current_credit_balance
+        else:
+            print(f"Current credit balance: {current_credit_balance}. Waiting for credits to refresh...")
+            time.sleep(1200)  # Wait for 20 minute before checking again
+
 if __name__ == "__main__":
     
     with requests.get(fish_self_api, headers=headers) as response:
@@ -223,7 +238,7 @@ if __name__ == "__main__":
         if credits_required > current_credit_balance:
             print(f"Not enough credits to generate the whole project. Required: {credits_required}, Available: {current_credit_balance}")
             logging.info(f"Not enough credits. Required: {credits_required}, Available: {current_credit_balance}")
-            continue
+            current_credit_balance = wait_for_credits_to_refresh(credits_required)
 
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
 
