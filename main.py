@@ -10,43 +10,54 @@ from modules.utils.notifier import notify
 
 import logging
 
-"""
-TODO:
-- Make a class in fish_api.py to handle all API requests.(done)
-- Use session for requests to avoid re-authentication for every request.(done)
-- Add error handling for API requests. 
-- Add chapter deletion in case of chunk upload failure and retry the upload.(done)
-- Inform user if selected voice is not available.(done)
-- Remove all the hard exits and use exceptions instead.
-- Add chapter grouping for exporting multiple chapters at a time
-"""
-
-
 logging.basicConfig(filename="runtime.log",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-if os.path.exists("config.json"):
-    with open("config.json", "r") as f:
-        config = json.load(f)
-else:
-    print("config.json not found. Please create a config.json file.")
-    print("Example config.json:")
-    print(
-"""
-{
-    "BearerToken": "",
-    "Email": "email@domain.com",
-    "Password": "Password",
-    "characterLimitPerChunk": 500,
-    "Voice_Name": "Very Original Name"
-}
-""")
+# --- MULTI-ACCOUNT SUPPORT START ---
+ACCOUNTS_DIR = "accounts"
+if not os.path.exists(ACCOUNTS_DIR):
+    print(f"Accounts folder '{ACCOUNTS_DIR}' not found. Please create it and add account folders.")
     exit(1)
+
+accounts = [d for d in os.listdir(ACCOUNTS_DIR) if os.path.isdir(os.path.join(ACCOUNTS_DIR, d))]
+if not accounts:
+    print(f"No account folders found in '{ACCOUNTS_DIR}'.")
+    exit(1)
+
+print("Select an account:")
+for idx, acc in enumerate(accounts):
+    print(f"{idx+1}. {acc}")
+
+while True:
+    try:
+        selected = int(input("Enter the number of the account to use: ")) - 1
+        if 0 <= selected < len(accounts):
+            break
+        else:
+            print("Invalid selection. Try again.")
+    except ValueError:
+        print("Please enter a valid number.")
+
+account_name = accounts[selected]
+account_path = os.path.join(ACCOUNTS_DIR, account_name)
+config_path = os.path.join(account_path, "config.json")
+input_folder = os.path.join(account_path, "inputFiles")
+output_folder = os.path.join("outputFiles", account_name)
+
+if not os.path.exists(config_path):
+    print(f"config.json not found in {account_path}.")
+    exit(1)
+if not os.path.exists(input_folder):
+    print(f"input_files folder not found in {account_path}.")
+    exit(1)
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+with open(config_path, "r") as f:
+    config = json.load(f)
 
 bearer_token = config.get("BearerToken")
 USER_ID = None
 VOICE_NAME = config.get("Voice_Name")
-INPUT_FOLDER = 'inputFiles'
-DOWNLOAD_FOLDER = 'outputFiles'
 characterLimitPerChunk = config.get("characterLimitPerChunk")
 
 fish_self_api = "https://api.fish.audio/user/self"
@@ -68,6 +79,18 @@ headers = {
     'Sec-Gpc': '1',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
 }
+# --- MULTI-ACCOUNT SUPPORT END ---
+
+"""
+TODO:
+- Make a class in fish_api.py to handle all API requests.(done)
+- Use session for requests to avoid re-authentication for every request.(done)
+- Add error handling for API requests. 
+- Add chapter deletion in case of chunk upload failure and retry the upload.(done)
+- Inform user if selected voice is not available.(done)
+- Remove all the hard exits and use exceptions instead.
+- Add chapter grouping for exporting multiple chapters at a time
+"""
 
 def create_chapter_and_export(file_name:str, file_path:str,studio_project_id:str, voice_id:str) -> tuple:
     """
@@ -203,7 +226,7 @@ if __name__ == "__main__":
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
 
-    input_projects_path = os.path.join(os.getcwd(), INPUT_FOLDER)
+    input_projects_path = input_folder
 
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
 
@@ -305,6 +328,6 @@ if __name__ == "__main__":
         logging.info(f"All chapters exported successfully. Downloading audio files...")
 
         for download_link in download_links:
-            download_from_link(download_link, folder_name, DOWNLOAD_FOLDER)
+            download_from_link(download_link, folder_name, output_folder)
         
     display_failed_files(failed_files_dict_list)
