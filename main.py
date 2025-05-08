@@ -212,7 +212,7 @@ if __name__ == "__main__":
                     print("Bearer token is invalid. Please retry...")
                     exit(1)
             # Save the updated token to the config file
-            with open("config.json", "w") as f:
+            with open(config_path, "w") as f:
                 json.dump(config, f, indent=4)
             
             print("Bearer token updated in config.json.")
