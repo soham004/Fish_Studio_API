@@ -80,9 +80,9 @@ class fish_api_calls:
         if response.status_code < 300:
             data = response.json()
             return data['balance']
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error fetching credit balance: {response.status_code}")
 
@@ -97,9 +97,9 @@ class fish_api_calls:
                 if voice['title'] == voice_name:
                     return voice['_id']
             return None
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error fetching voice ID: {response.status_code}")
         
@@ -115,9 +115,9 @@ class fish_api_calls:
         if response.status_code < 300:
             data = response.json()
             return data['_id']
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error creating studio project: {response.status_code}")
 
@@ -131,9 +131,9 @@ class fish_api_calls:
         if response.status_code < 300:
             data = response.json()
             return data['_id']
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error creating chapter: {response.status_code}")
 
@@ -146,9 +146,9 @@ class fish_api_calls:
         response = self.session.delete(delete_chapter_api)
         if response.status_code < 300:
             return True
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error deleting chapter: {response.status_code}")
 
@@ -164,9 +164,9 @@ class fish_api_calls:
             # data = response.json()
             # return data['_id']
             pass
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error inserting text block: {response.status_code}")
 
@@ -177,9 +177,9 @@ class fish_api_calls:
         if response.status_code < 300:
             data = response.json()
             return data
-        elif response.status_code == 401:
-            print(f"Error: Unauthorized. Please check your bearer token.")
-            exit()
+        elif response.status_code >= 400 and response.status_code < 500:
+            self.refresh_bearer_token()
+            raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
         else:
             raise Exception(f"Error fetching chapter blocks: {response.status_code}")
 
@@ -203,9 +203,9 @@ class fish_api_calls:
         
         try:
             with self.session.post(export_chapter_api, stream=True, json=data) as response:
-                if response.status_code == 401:
-                    print(f"Error: Unauthorized. Please check your bearer token.")
-                    raise Exception("Unauthorized during export. Please check your bearer token.")
+                if response.status_code >= 400 and response.status_code < 500:
+                    self.refresh_bearer_token()
+                    raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")
                 client = sseclient.SSEClient(response)
                 i, f, j = 1, 1, 1
                 download_url = None
