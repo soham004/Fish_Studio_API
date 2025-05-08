@@ -62,6 +62,8 @@ def main():
     }
     if bearer_token:
         config["BearerToken"] = bearer_token
+    else:
+        config["BearerToken"] = ""
 
     config_path = os.path.join(account_path, "config.json")
     with open(config_path, "w", encoding="utf-8") as f:
