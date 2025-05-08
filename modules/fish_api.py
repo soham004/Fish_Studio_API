@@ -27,9 +27,10 @@ def retry(n):
     return decorator
 
 class fish_api_calls:
-    def __init__(self, token=None, session=None):
+    def __init__(self, token=None, session=None, config_path=None):
         self.BEARER_TOKEN = token
         
+        self.config_path = config_path
         # Use provided session or create new one
         self.session = session if session else requests.Session()
         
@@ -65,7 +66,7 @@ class fish_api_calls:
         logging.info(f"Bearer token set to: '{self.BEARER_TOKEN}'")
 
     def refresh_bearer_token(self):
-        with open("config.json") as f:
+        with open(self.config_path) as f:
             config = json.load(f)
         email = config['Email']
         password = config['Password']

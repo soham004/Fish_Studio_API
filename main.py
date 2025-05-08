@@ -92,7 +92,7 @@ TODO:
 - Add chapter grouping for exporting multiple chapters at a time
 """
 
-def create_chapter_and_export(file_name:str, file_path:str,studio_project_id:str, voice_id:str) -> tuple:
+def create_chapter_and_export(file_name:str, file_path:str,studio_project_id:str, voice_id:str, fish_api_calls:fish_api.fish_api_calls) -> tuple:
     """
     It retuns a tuple of chapter_id and download_link.
     """
@@ -152,7 +152,7 @@ def display_failed_files(failed_files_dict_list):
             print(f"No failed files in folder {failed_files_dict['folder_name']}")
             logging.info(f"No failed files in folder {failed_files_dict['folder_name']}")
 
-def wait_for_credits_to_refresh(credits_required):
+def wait_for_credits_to_refresh(credits_required, fish_api_calls:fish_api.fish_api_calls):
     """
     Wait for credits to refresh. 
     """
@@ -218,7 +218,7 @@ if __name__ == "__main__":
             print("Bearer token updated in config.json.")
 
 
-    fish_api_calls = fish_api.fish_api_calls(token=bearer_token)
+    fish_api_calls = fish_api.fish_api_calls(token=bearer_token, config_path=config_path)
     voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
     if voice_id == None:
         print("The selected voice is not available")
@@ -261,7 +261,7 @@ if __name__ == "__main__":
         if credits_required > current_credit_balance:
             print(f"Not enough credits to generate the whole project. Required: {credits_required}, Available: {current_credit_balance}")
             logging.info(f"Not enough credits. Required: {credits_required}, Available: {current_credit_balance}")
-            current_credit_balance = wait_for_credits_to_refresh(credits_required)
+            current_credit_balance = wait_for_credits_to_refresh(credits_required, fish_api_calls)
 
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
 
@@ -290,7 +290,7 @@ if __name__ == "__main__":
                 time.sleep(random.randint(1, 5))  # Random sleep between 1 and 5 seconds
 
                 try:
-                    chapter_id, download_link = create_chapter_and_export(file_name, file_path, studio_project_id, voice_id)
+                    chapter_id, download_link = create_chapter_and_export(file_name, file_path, studio_project_id, voice_id, fish_api_calls=fish_api_calls)
                     if download_link is None:
                         print(f"Error: Download link is None. Retrying...")
                         logging.error(f"Download link is None. Retrying...")
