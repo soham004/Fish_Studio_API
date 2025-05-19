@@ -27,7 +27,7 @@ def retry(n):
     return decorator
 
 class fish_api_calls:
-    def __init__(self, token=None, session=None, config_path=None):
+    def __init__(self,config_path:str, token=None, session=None):
         self.BEARER_TOKEN = token
         
         self.config_path = config_path

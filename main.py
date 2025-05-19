@@ -158,13 +158,20 @@ def wait_for_credits_to_refresh(credits_required, fish_api_calls:fish_api.fish_a
     """
     print(f"Waiting for credits to refresh...")
     while True:
-        current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
+        try:
+            current_credit_balance = int(fish_api_calls.get_current_credit_balance(str(USER_ID)))
+        except Exception as e:
+            print(f"Error fetching current credit balance: {e}")
+            logging.error(f"Error fetching current credit balance: {e}")
+            print("Retrying in 5 minutes...")
+            time.sleep(300)
+            continue
         if current_credit_balance >= credits_required:
-            print(f"Credits refreshed. Current balance: {current_credit_balance}")
+            print(f"\nCredits refreshed. Current balance: {current_credit_balance}")
             logging.info(f"Credits refreshed. Current balance: {current_credit_balance}")
             return current_credit_balance
         else:
-            print(f"Current credit balance: {current_credit_balance}. Waiting for credits to refresh...")
+            print(f"\rCurrent credit balance: {current_credit_balance}. Waiting for credits to refresh...", end="\r")
             time.sleep(1200)  # Wait for 20 minute before checking again
 
 if __name__ == "__main__":
@@ -276,9 +283,8 @@ if __name__ == "__main__":
         print(f"Studio Project ID: {studio_project_id}")
         download_link = None
         download_links = []
-
+        file_path = ""
         for file_name in files:
-
             retries = 3
             for attempt in range(retries):
                 print("\n")
