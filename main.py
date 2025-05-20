@@ -156,23 +156,7 @@ def wait_for_credits_to_refresh(credits_required, fish_api_calls:fish_api.fish_a
     """
     Wait for credits to refresh. 
     """
-    print(f"Waiting for credits to refresh...")
-    while True:
-        try:
-            current_credit_balance = int(fish_api_calls.get_current_credit_balance(str(USER_ID)))
-        except Exception as e:
-            print(f"Error fetching current credit balance: {e}")
-            logging.error(f"Error fetching current credit balance: {e}")
-            print("Retrying in 5 minutes...")
-            time.sleep(300)
-            continue
-        if current_credit_balance >= credits_required:
-            print(f"\nCredits refreshed. Current balance: {current_credit_balance}")
-            logging.info(f"Credits refreshed. Current balance: {current_credit_balance}")
-            return current_credit_balance
-        else:
-            print(f"\rCurrent credit balance: {current_credit_balance}. Waiting for credits to refresh...", end="\r")
-            time.sleep(1200)  # Wait for 20 minute before checking again
+    
 
 if __name__ == "__main__":
     
@@ -268,7 +252,23 @@ if __name__ == "__main__":
         if credits_required > current_credit_balance:
             print(f"Not enough credits to generate the whole project. Required: {credits_required}, Available: {current_credit_balance}")
             logging.info(f"Not enough credits. Required: {credits_required}, Available: {current_credit_balance}")
-            current_credit_balance = wait_for_credits_to_refresh(credits_required, fish_api_calls)
+            print(f"Waiting for credits to refresh...")
+            while True:
+                try:
+                    current_credit_balance = int(fish_api_calls.get_current_credit_balance(str(USER_ID)))
+                except Exception as e:
+                    print(f"Error fetching current credit balance: {e}")
+                    logging.error(f"Error fetching current credit balance: {e}")
+                    print("Retrying in 5 minutes...")
+                    time.sleep(300)
+                    continue
+                if current_credit_balance >= credits_required:
+                    print(f"\nCredits refreshed. Current balance: {current_credit_balance}")
+                    logging.info(f"Credits refreshed. Current balance: {current_credit_balance}")
+                    break
+                else:
+                    print(f"Current credit balance: {current_credit_balance}. Waiting for credits to refresh...")
+                    time.sleep(1200)  # Wait for 20 minute before checking again
 
         files = [f for f in os.listdir(folder_path) if f.endswith('.txt')]
 
