@@ -2,6 +2,7 @@ import requests
 import json
 import sseclient
 import logging
+from typing import Optional
 
 from modules.bearer_fetch import fetch_bearer_using_selenium
 
@@ -88,15 +89,23 @@ class fish_api_calls:
             raise Exception(f"Error fetching credit balance: {response.status_code}")
 
     @retry(3)
-    def get_voice_id(self, voice_name:str)-> str:
+    def get_voice_id(self, voice_name:str)-> Optional[str]:
         voice_api_url = f"https://api.fish.audio/model/latest-used?page_size=10&page_number=1"
         response = self.session.get(voice_api_url)
         if response.status_code < 300:
             voices = response.json()
+            print("Available voices:")
+            for v in voices:
+                languages = ', '.join(v['languages'])
+                print(f"- '{v['title']}', Languages: {languages}")
             for voice in voices:
                 # print(voice)
                 if voice['title'] == voice_name:
+                    print(f"Found voice: {voice_name} with ID: {voice['_id']}")
                     return voice['_id']
+            
+            print(f"Voice '{voice_name}' not found in the list.")
+            
             return None
         elif response.status_code >= 400 and response.status_code < 500:
             self.refresh_bearer_token()
@@ -139,7 +148,7 @@ class fish_api_calls:
             raise Exception(f"Error creating chapter: {response.status_code}")
 
     @retry(3)
-    def delete_chapter(self, studio_id:str, chapter_id:str)-> str:
+    def delete_chapter(self, studio_id:str, chapter_id:str)-> bool:
         delete_chapter_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}"
 
         response = self.session.options(delete_chapter_api) # This is just to simulate default browser baheviour
@@ -154,7 +163,7 @@ class fish_api_calls:
             raise Exception(f"Error deleting chapter: {response.status_code}")
 
     @retry(3)
-    def insert_text_block(self, content:str, studio_id:str, chapter_id:str, voice_id:str) -> str:
+    def insert_text_block(self, content:str, studio_id:str, chapter_id:str, voice_id:str)-> bool:
         insert_text_block_api = f"https://api.fish.audio/studio/{studio_id}/chapters/{chapter_id}/blocks"
         data = {
             "content": content,
@@ -164,7 +173,7 @@ class fish_api_calls:
         if response.status_code < 300:
             # data = response.json()
             # return data['_id']
-            pass
+            return True
         elif response.status_code >= 400 and response.status_code < 500:
             self.refresh_bearer_token()
             raise Exception(f"Error fetching credit balance: {response.status_code}. Token might be expired.")

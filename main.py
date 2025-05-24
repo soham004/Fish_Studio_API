@@ -211,12 +211,14 @@ if __name__ == "__main__":
 
     fish_api_calls = fish_api.fish_api_calls(token=bearer_token, config_path=config_path)
     voice_id = fish_api_calls.get_voice_id(VOICE_NAME)
+    
     if voice_id == None:
         print("The selected voice is not available")
         exit(1)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
-
+    input(f"Selected voice: {VOICE_NAME}. Press Enter to continue...")
+    
     input_projects_path = input_folder
 
     folders = [f for f in os.listdir(input_projects_path) if os.path.isdir(os.path.join(input_projects_path, f))]
