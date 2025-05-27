@@ -90,7 +90,7 @@ class fish_api_calls:
 
     @retry(3)
     def get_voice_id(self, voice_name:str)-> Optional[str]:
-        voice_api_url = f"https://api.fish.audio/model/latest-used?page_size=10&page_number=1"
+        voice_api_url = f"https://api.fish.audio/model/latest-used?page_size=20&page_number=1"
         response = self.session.get(voice_api_url)
         if response.status_code < 300:
             voices = response.json()

@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import requests
 import time
 import random
@@ -16,12 +17,12 @@ logging.basicConfig(filename="runtime.log",level=logging.INFO, format='%(asctime
 ACCOUNTS_DIR = "accounts"
 if not os.path.exists(ACCOUNTS_DIR):
     print(f"Accounts folder '{ACCOUNTS_DIR}' not found. Please create it and add account folders.")
-    exit(1)
+    sys.exit(1)
 
 accounts = [d for d in os.listdir(ACCOUNTS_DIR) if os.path.isdir(os.path.join(ACCOUNTS_DIR, d))]
 if not accounts:
     print(f"No account folders found in '{ACCOUNTS_DIR}'.")
-    exit(1)
+    sys.exit(1)
 
 print("Select an account:")
 for idx, acc in enumerate(accounts):
@@ -45,10 +46,10 @@ output_folder = os.path.join("outputFiles", account_name)
 
 if not os.path.exists(config_path):
     print(f"config.json not found in {account_path}.")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(input_folder):
     print(f"input_files folder not found in {account_path}.")
-    exit(1)
+    sys.exit(1)
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
@@ -88,7 +89,7 @@ TODO:
 - Add error handling for API requests. 
 - Add chapter deletion in case of chunk upload failure and retry the upload.(done)
 - Inform user if selected voice is not available.(done)
-- Remove all the hard exits and use exceptions instead.
+- Remove all the hard sys.exits and use exceptions instead.
 - Add chapter grouping for exporting multiple chapters at a time
 """
 
@@ -167,7 +168,7 @@ if __name__ == "__main__":
             if data["banned"]: # Its a True False value
                 print("Your account is banned.")
                 print(f"Banned reason: '{data['banned_reason']}'")
-                exit(1)
+                sys.exit(1)
             USER_ID = data['_id']
             print(f"User ID: {USER_ID}")
             print(f"Username: {data['nickname']}")
@@ -192,7 +193,7 @@ if __name__ == "__main__":
                     if data["banned"]: # Its a True False value
                         print("Your account is banned.")
                         print(f"Banned reason: '{data['banned_reason']}'")
-                        exit(1)
+                        sys.exit(1)
                     USER_ID = data['_id']
                     print(f"User ID: {USER_ID}")
                     print(f"Username: {data['nickname']}")
@@ -201,7 +202,7 @@ if __name__ == "__main__":
                     print(f"Error: {response.status_code}")
                     print(response.text)
                     print("Bearer token is invalid. Please retry...")
-                    exit(1)
+                    sys.exit(1)
             # Save the updated token to the config file
             with open(config_path, "w") as f:
                 json.dump(config, f, indent=4)
@@ -214,10 +215,9 @@ if __name__ == "__main__":
     
     if voice_id == None:
         print("The selected voice is not available")
-        exit(1)
+        sys.exit(1)
     print(f"Voice ID: {voice_id}")
     logging.info(f"Voice ID: {voice_id}")
-    input(f"Selected voice: {VOICE_NAME}. Press Enter to continue...")
     
     input_projects_path = input_folder
 
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     if len(folders) == 0:
         print(f"No folders found in {input_projects_path}.")
         logging.info(f"No folders found in {input_projects_path}.")
-        exit(1)
+        sys.exit(1)
     
     current_credit_balance = int(fish_api_calls.get_current_credit_balance(USER_ID))
     failed_files_dict_list = []
@@ -287,6 +287,15 @@ if __name__ == "__main__":
         download_links = []
         file_path = ""
         for file_name in files:
+            # Skip empty files
+            file_path = os.path.join(folder_path, file_name)
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+            if len(content) == 0:
+                print(f"File {file_name} is empty. Skipping.")
+                logging.info(f"File {file_name} is empty. Skipping.")
+                failed_files_dict["failed_files"].append(file_name)
+                continue
             retries = 3
             for attempt in range(retries):
                 print("\n")
@@ -296,7 +305,7 @@ if __name__ == "__main__":
                 logging.info(f"Processing file: {file_name}")
                 print()
                 time.sleep(random.randint(1, 5))  # Random sleep between 1 and 5 seconds
-
+                chapter_id = None
                 try:
                     chapter_id, download_link = create_chapter_and_export(file_name, file_path, studio_project_id, voice_id, fish_api_calls=fish_api_calls)
                     if download_link is None:
@@ -308,7 +317,8 @@ if __name__ == "__main__":
                     print(f"Error exporting chapter: {e}")
                     logging.error(f"Error exporting chapter: {e}")
                     print(f"Deleting chapter...")
-                    fish_api_calls.delete_chapter(studio_project_id, chapter_id)
+                    if chapter_id:
+                        fish_api_calls.delete_chapter(studio_project_id, chapter_id)
                     retries -= 1
                     if retries == 0:
                         print(f"Failed to export chapter after {attempt + 1} attempts.")
